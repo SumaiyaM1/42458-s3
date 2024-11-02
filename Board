@@ -1,0 +1,97 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+class Board extends JPanel {
+    private static final long serialVersionUID = 1L; 
+    private final BoardLabel[][] boardLabels;
+
+    public Board(int size, Game game) {
+        setLayout(new GridLayout(size, size));
+        boardLabels = new BoardLabel[size][size];
+
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                boardLabels[i][j] = new BoardLabel(i, j);
+                boardLabels[i][j].setBorder(BorderFactory.createLineBorder(Color.BLACK));
+                boardLabels[i][j].setPreferredSize(new Dimension(50, 50));
+                boardLabels[i][j].setHorizontalAlignment(SwingConstants.CENTER);
+                boardLabels[i][j].setFont(new Font("Arial", Font.BOLD, 24));
+                boardLabels[i][j].addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        BoardLabel label = (BoardLabel) e.getSource();
+                        if (!label.getText().isEmpty()) {
+                            JOptionPane.showMessageDialog(Board.this, "Invalid Move: This cell is already occupied. Try again!", "Invalid Move", JOptionPane.WARNING_MESSAGE);
+                            return;
+                        }
+
+                        String symbol = game.getCurrentPlayerSymbol();
+                        label.setText(symbol);
+
+                        boolean sosFormed = checkForSOS(label.getI(), label.getJ());
+
+                        if (sosFormed) {
+                            if (game.isModeS()) {
+                                String playerName = game.isPlayerTurn() ? "Blue Player" : "Red Player";
+                                game.playerWon(playerName);
+                                return;
+                            } else {
+                                if (game.isPlayerTurn()) {
+                                    game.incrementBlueScore();
+                                } else {
+                                    game.incrementRedScore();
+                                }
+                            }
+                        }
+
+                        game.checkForDraw();
+                        game.alterTurn();
+                    }
+                });
+                add(boardLabels[i][j]);
+            }
+        }
+    }
+
+    public int getBoardSize() {
+        return boardLabels.length;
+    }
+
+    public BoardLabel[][] getBoardLabels() { 
+        return boardLabels;
+    }
+
+    private boolean checkForSOS(int x, int y) {
+        return (checkPattern(x, y, -1,  0, "S", "O", "S") ||
+                checkPattern(x, y,  1,  0, "S", "O", "S") ||
+                checkPattern(x, y,  0, -1, "S", "O", "S") ||
+                checkPattern(x, y,  0,  1, "S", "O", "S") ||
+                checkPattern(x, y, -1, -1, "S", "O", "S") ||
+                checkPattern(x, y,  1,  1, "S", "O", "S") ||
+                checkPattern(x, y, -1,  1, "S", "O", "S") ||
+                checkPattern(x, y,  1, -1, "S", "O", "S"));
+    }
+
+    private boolean checkPattern(int x, int y, int dx, int dy, String first, String second, String third) {
+        int midX = x + dx;
+        int midY = y + dy;
+        int endX = x + 2 * dx;
+        int endY = y + 2 * dy;
+
+        if (midX >= 0 && midY >= 0 && midX < boardLabels.length && midY < boardLabels.length &&
+            endX >= 0 && endY >= 0 && endX < boardLabels.length && endY < boardLabels.length) {
+            String midSymbol = boardLabels[midX][midY].getText();
+            String endSymbol = boardLabels[endX][endY].getText();
+            return boardLabels[x][y].getText().equals(first) &&
+                   midSymbol.equals(second) &&
+                   endSymbol.equals(third);
+        }
+        return false;
+    }
+
+    public int countSOS(String symbol) {
+        return 0;
+    }
+}

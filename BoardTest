@@ -1,0 +1,17 @@
+//ChatGbt generated
+
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+
+class BoardTest {
+
+    @Test
+    void testGetBoardSize() {
+        int expectedSize = 8; // Example board size
+        Game game = new Game(); // Assuming Board requires a Game instance
+        Board board = new Board(expectedSize, game);
+
+        // Check if getBoardSize returns the expected size
+        assertEquals(expectedSize, board.getBoardSize(), "The board size should match the expected size.");
+    }
+}
